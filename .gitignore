@@ -1,0 +1,7 @@
+misc/
+0_data/
+1_tree/
+2_results/
+*RProj*
+.RData
+.RHistory
