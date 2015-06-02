@@ -2,6 +2,7 @@ misc/
 0_data/
 1_tree/
 2_results/
+3_plot/
 *RProj*
 .RData
 .RHistory
