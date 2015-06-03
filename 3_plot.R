@@ -4,6 +4,7 @@
 
 # LIBS
 library (ape)
+library (MoreTreeTools)
 
 # INPUT
 trees <- list ()
@@ -75,11 +76,9 @@ pdf (file.path ('3_plot', 'tree.pdf'))
 for (i in 1:length (trees)) {
   tree <- drop.tip (trees[[i]],
                     tip=trees[[i]]$tip.label[!trees[[i]]$tip.label %in% refnames])
+  write.tree (tree, file=file.path ('3_plot', treefiles[i]))
   plot (trees[[i]], main=treenames[i])
   axisPhylo ()
   mtext ('MYA', side=1, line=2)
 }
 dev.off()
-
-# WRITE OUT
-write.tree (trees, file=file.path ('3_plot', 'trees.tre'))
