@@ -7,6 +7,7 @@ library( caper )
 library( ape )
 #library( coxme ) # what does this do? I found I didn't need it.
 library( lme4 )
+library (MoreTreeTools)
 source(file.path ("0_data", "pglm3.4.r")) # Rob's updated/edited code for pagel's lambda test
 
 # PARAMETERS
@@ -75,6 +76,36 @@ if (!dist) {
 }
 cat ('\nDone. Read in [', length (trees), '].', sep='')
 
+# SORT TREES
+if (!dist) {
+  # get mean split age
+  ages <- rep (NA, length (trees))
+  for (i in 1:length (trees)) {
+    ages[i] <- getSize (trees[[i]], 'rtt')
+  }
+  mean.age <- mean (ages[ages > 10])
+  print (mean.age)
+  # make ultrametric
+  for (i in 1:length (trees)) {
+    if(ages[i] < 10) {  # because if the rtt is >10, it must be time callibrated
+      if (!is.binary.tree (trees[[i]])) {
+        trees[[i]] <- multi2di (trees[[i]])
+      }
+      trees[[i]] <- chronos (trees[[i]])
+      class (trees[[i]]) <- 'phylo'  # make sure its phylo for phylo.d
+      trees[[i]]$edge.length <- trees[[i]]$edge.length*mean.age
+    }
+  }
+  class (trees) <- 'multiPhylo'
+  # correct Bininda-Edmonds names
+  i <- which (treenames == 'bininda')
+  trees[[i]]$tip.label <- c ("Gorilla_gorilla", "Homo_sapiens", "Pan_paniscus", "Pan_troglodytes",
+                             "Pongo_pygmaeus", "Hylobates_agilis", "Hylobates_lar", "Hylobates_moloch",
+                             "Hylobates_muelleri", "Hylobates_pileatus", "Hylobates_klossii",
+                             "Hoolock_hoolock", "Symphalangus_syndactylus", "Nomascus_concolor",
+                             "Nomascus_leucogenys", "Nomascus_gabriellae")
+}
+
 # CALCULATE LAMBDAS AND D
 cat ('\nCalculating lambdas and D and plotting ....')
 pdf ('2_results/results.pdf')
@@ -101,7 +132,7 @@ for (i in 1:length (trees)) {
   t <- trees[[i]]
   t$node.label <- NULL
   cdat <- comparative.data (t, MSdata, names.col="species")
-  good.to.go <- length (unique (cdat$data$category)) > 1 &
+  good.to.go <- all (table(cdat$data$category) > 1) &
     all (t$edge.length > 0)
   if (good.to.go) {
     res <- phylo.d (cdat, binvar=category)
